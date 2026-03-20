@@ -1,0 +1,70 @@
+name: Build Docker Image, Push to GHCR, and Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/kriszchan/devopsbackend:${{ env.IMAGE_TAG }}
+            ghcr.io/kriszchan/devopsbackend:latest
+          file: ./Dockerfile
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.32.0'
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Install envsubst
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext-base
+
+      - name: Deploy with env substitution
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          envsubst < k8s/deployment.yaml | kubectl apply -f -
+
+      - name: Delete untagged images from GHCR
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: devopsbackend
+          package-type: container
+          min-versions-to-keep: 5
+          delete-only-untagged-versions: true
