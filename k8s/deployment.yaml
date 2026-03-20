@@ -15,7 +15,7 @@ spec:
         app: devopsbackend
     spec:
       imagePullSecrets:
-        - name: devopsbackend
+        - name: ghcr-login-secret
       containers:
         - name: devopsbackend-api
           image: ghcr.io/kriszchan/devopsbackend:latest
