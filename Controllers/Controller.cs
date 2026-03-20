@@ -3,13 +3,13 @@ using System.Text;
 
 namespace devopsBackend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("")]
     [ApiController]
     public class LicensePlateController : ControllerBase
     {
         private static readonly Random _random = new Random();
 
-        [HttpGet("plates")]
+        [HttpGet]
         public ActionResult<IEnumerable<string>> GetRandomPlates()
         {
             var plates = new List<string>();
