@@ -61,12 +61,15 @@ jobs:
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          envsubst < k8s/deployment.yaml | kubectl apply -f k8s
+          envsubst < k8s/deployment.yaml | kubectl apply -f -
 
       - name: Delete untagged images from GHCR
+        continue-on-error: true
         uses: actions/delete-package-versions@v5
         with:
           package-name: devopsbackend
           package-type: container
+          owner: kriszchan
+          token: ${{ secrets.GHCR_PAT }}
           min-versions-to-keep: 5
           delete-only-untagged-versions: true
