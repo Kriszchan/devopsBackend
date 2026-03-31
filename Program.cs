@@ -28,6 +28,7 @@ if (app.Environment.IsDevelopment())
 
 // Enable CORS (must be before MapControllers / endpoints)
 app.UseCors(corsPolicyName);
+app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
