@@ -1,3 +1,16 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: devopsbackend-certificate
+spec:
+  secretName: devopsbackend-certificate
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - pk-backend.jcloud.jedlik.cloud
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -71,6 +84,7 @@ spec:
   tls:
     - hosts:
         - pk-backend.jcloud.jedlik.cloud
+      secretName: devopsbackend-certificate
   rules:
     - host: pk-backend.jcloud.jedlik.cloud
       http:
